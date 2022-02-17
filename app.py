@@ -1,21 +1,16 @@
-# from flask import Flask
-
-# app = Flask(__name__)
-import os.path
-import configparser
+import os
 from os import listdir
 from os.path import isfile, join
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-mypath = config['VideoFolder']['Path']
-videoFiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 from pymediainfo import MediaInfo
+
+videoFolderPath = 'videoFolder'
+
+# todo: 遞迴抓取該資料夾底下的所有影片檔
+videoFiles = [f for f in listdir(videoFolderPath) if isfile(join(videoFolderPath, f))]
 
 for item in videoFiles:
     check_flag = False
-    item = os.path.join(mypath,item)
-    print(item)
+    item = os.path.join(videoFolderPath, item)
     media_info = MediaInfo.parse(item)
     for track in media_info.tracks:
         if track.track_type == "Audio":
@@ -24,11 +19,3 @@ for item in videoFiles:
                 print('Found~')
     print('===================')
 
-
-# @app.route('/')
-# def index_page():
-#     return 'This is a tool for show video with dts and eac3 audio'
-
-
-# if __name__ == '__main__':
-    # app.run()
