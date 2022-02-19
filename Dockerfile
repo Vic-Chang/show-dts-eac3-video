@@ -2,9 +2,9 @@ FROM python:3.10-alpine
 
 RUN apk update && apk add libmediainfo-dev
 
-WORKDIR /app
+WORKDIR /
 
-COPY . /app
+COPY . /
 
 RUN pip install -r requirements.txt
 
