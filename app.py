@@ -1,28 +1,19 @@
+import math
 import os
+import configparser
 from pymediainfo import MediaInfo
 import multiprocessing as mp
 
-
-class ShowVideoInfo:
-    def __init__(self, path):
-        self.path = path
-        self.track_count = 0
-        self.format = []
-        self.other_format = []
-
-    def show_info(self):
-        print(f'{self.path}')
-        print(f'共 {self.track_count} 個音軌')
-        print(f'主格式: {", ".join(self.format)}')
-        print(f'其他格式: {", ".join(self.other_format)}')
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 
-def process_mp(files_list):
+def process_pending_file(files_list):
     for file in files_list:
-        process_file(file)
+        check_file(file)
 
 
-def process_file(file_path):
+def check_file(file_path):
     try:
         media_info = MediaInfo.parse(file_path)
 
@@ -81,7 +72,7 @@ def process_file(file_path):
 
 
 def run():
-    print('Process start ...')
+    print('Script start ...')
     video_folder_path = 'videoFolder'
     if not os.path.exists(video_folder_path):
         os.mkdir(video_folder_path)
@@ -92,14 +83,22 @@ def run():
             all_files.append(file_path)
 
     jobs_list = []
-    half_files_count = int(len(all_files) / 2)
-    jobs_list.append(mp.Process(target=process_mp, args=(all_files[: half_files_count],)))
-    jobs_list.append(mp.Process(target=process_mp, args=(all_files[half_files_count:],)))
+    process_count = int(config['Setting']['ProcessCount'])
+    print('Process Count : ', process_count)
+    average_count = math.ceil(len(all_files) / process_count)
+    start_index = 0
+    for index in range(process_count):
+        end_index = average_count + (index * average_count)
+        jobs_list.append(mp.Process(target=process_pending_file, args=(all_files[start_index:end_index],)))
+        start_index = end_index
+
+    print('All process start ...')
     for job in jobs_list:
         job.start()
 
     for job in jobs_list:
         job.join()
+    print('===========================================================')
     print('All files are checked ! Container will close automatically.')
 
 
