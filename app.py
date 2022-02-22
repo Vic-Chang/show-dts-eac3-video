@@ -1,6 +1,7 @@
 import math
 import os
 import configparser
+from pathlib import Path
 from pymediainfo import MediaInfo
 import multiprocessing as mp
 
@@ -76,17 +77,22 @@ def run():
     video_folder_path = 'videoFolder'
     if not os.path.exists(video_folder_path):
         os.mkdir(video_folder_path)
+
     all_files = []
+    common_extension = ['.srt', '.ass', '.saa', '.jpg', '.png', '.zip', '.rar', '.7z', '.tar', '.tmp', '.mp3', '.doc',
+                        '.docx', '.txt']
     for root, dirs, files in os.walk(video_folder_path):
         for file in files:
-            file_path = os.path.join(root, file)
-            all_files.append(file_path)
+            file_extension = Path(file).suffix
+            if file_extension not in common_extension:
+                file_path = os.path.join(root, file)
+                all_files.append(file_path)
 
     jobs_list = []
     process_count = int(config['Setting']['ProcessCount'])
-    print('Process Count : ', process_count)
     average_count = math.ceil(len(all_files) / process_count)
     start_index = 0
+    print('The number of process : ', process_count)
     for index in range(process_count):
         end_index = average_count + (index * average_count)
         jobs_list.append(mp.Process(target=process_pending_file, args=(all_files[start_index:end_index],)))
