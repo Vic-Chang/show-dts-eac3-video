@@ -74,11 +74,12 @@ def check_file(file_path):
                     print('Found')
     except FileNotFoundError:
         print("File not found : ", file_path)
-    except:
-        print('Exception raise : ', file_path)
+    except Exception as e:
+        print('Exception raise : ', e)
 
 
 def run():
+    script_start_time = datetime.datetime.now()
     print('Script start ...')
     video_folder_path = 'videoFolder'
     if not os.path.exists(video_folder_path):
@@ -86,11 +87,12 @@ def run():
 
     all_files = []
     common_extension = ['.srt', '.ass', '.saa', '.jpg', '.png', '.zip', '.rar', '.7z', '.tar', '.tmp', '.mp3', '.doc',
-                        '.docx', '.txt']
+                        '.docx', '.txt', '.vsmeta', '.nfo', '.torrent', '.sub', '.idx', '.sup', '.lock']
     for root, dirs, files in os.walk(video_folder_path):
         for file in files:
             file_extension = Path(file).suffix
-            if file_extension not in common_extension:
+            # 在群輝上會有無副檔名索引檔或是特殊符號副檔名
+            if file_extension.lower() not in common_extension and file_extension != '' and '@' not in file_extension:
                 file_path = os.path.join(root, file)
                 all_files.append(file_path)
 
@@ -112,6 +114,10 @@ def run():
         job.join()
     print('===========================================================')
     print('All files are checked ! Container will close automatically.')
+
+    script_end_time = datetime.datetime.now()
+    time_delta = script_end_time - script_start_time
+    print(f'Total time spent (second) : {time_delta.total_seconds()} s')
 
 
 if __name__ == '__main__':
