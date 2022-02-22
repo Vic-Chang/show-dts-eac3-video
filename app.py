@@ -9,6 +9,14 @@ import multiprocessing as mp
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+show_info = bool(int(config['Setting']['ShowDetail']))
+
+
+def print_info(value):
+    global show_info
+    if show_info:
+        print(value)
+
 
 def process_pending_file(files_list):
     for file in files_list:
@@ -16,8 +24,7 @@ def process_pending_file(files_list):
         check_file(file)
         end_time = datetime.datetime.now()
         time_delta = end_time - start_time
-        print('file name:', file)
-        print(time_delta.total_seconds())
+        print_info(f'Processing file time spent (second): {time_delta.total_seconds()} s')
 
 
 def check_file(file_path):
@@ -38,12 +45,13 @@ def check_file(file_path):
         """
         detect_format_list = ['DTS', 'E-AC-3']
         if is_video_flag:
-            print('=========')
-            print(media_info.audio_tracks)
+            print_info('=========')
+            print_info(f'File path: {file_path}')
+            print_info(f'Audio tracks count: {len(media_info.audio_tracks)}')
             for track in media_info.audio_tracks:
-                print('Format: ', track.format)
+                print_info(f'   Audio format: {track.format}')
                 for i in track.to_data()['other_format']:
-                    print('other_format : ', i)
+                    print_info(f'       other_format : {i}')
 
             detect_format_flag = False
             # 檢查所有音軌是否含有 DTS 或是 EAC3
@@ -71,11 +79,11 @@ def check_file(file_path):
                             break
 
                 if not has_other_format_type:
-                    print('Found')
+                    print_info("> [X] This file can't be played !")
     except FileNotFoundError:
-        print("File not found : ", file_path)
+        print("[!] File not found : ", file_path)
     except Exception as e:
-        print('Exception raise : ', e)
+        print('[!] Exception raise : ', e)
 
 
 def run():
