@@ -1,3 +1,4 @@
+import datetime
 import math
 import os
 import configparser
@@ -11,7 +12,12 @@ config.read('config.ini')
 
 def process_pending_file(files_list):
     for file in files_list:
+        start_time = datetime.datetime.now()
         check_file(file)
+        end_time = datetime.datetime.now()
+        time_delta = end_time - start_time
+        print('file name:', file)
+        print(time_delta.total_seconds())
 
 
 def check_file(file_path):
