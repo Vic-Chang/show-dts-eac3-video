@@ -2,9 +2,10 @@ import datetime
 import math
 import os
 import configparser
+import multiprocessing as mp
+from multiprocessing import Queue
 from pathlib import Path
 from pymediainfo import MediaInfo
-import multiprocessing as mp
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -18,16 +19,16 @@ def print_info(value):
         print(value)
 
 
-def process_pending_file(files_list):
+def process_pending_file(que, files_list):
     for file in files_list:
         start_time = datetime.datetime.now()
-        check_file(file)
+        check_file(que, file)
         end_time = datetime.datetime.now()
         time_delta = end_time - start_time
-        print_info(f'Processing file time spent (second): {time_delta.total_seconds()} s')
+        print_info(f'File processing time spent : {time_delta.total_seconds()} s')
 
 
-def check_file(file_path):
+def check_file(que, file_path):
     try:
         media_info = MediaInfo.parse(file_path)
 
@@ -80,6 +81,7 @@ def check_file(file_path):
 
                 if not has_other_format_type:
                     print_info("> [X] This file can't be played !")
+                    que.put((file_path, media_info.audio_tracks[0].format))
     except FileNotFoundError:
         print("[!] File not found : ", file_path)
     except Exception as e:
@@ -94,6 +96,7 @@ def run():
         os.mkdir(video_folder_path)
 
     all_files = []
+    result_file = []
     common_extension = ['.srt', '.ass', '.saa', '.jpg', '.png', '.zip', '.rar', '.7z', '.tar', '.tmp', '.mp3', '.doc',
                         '.docx', '.txt', '.vsmeta', '.nfo', '.torrent', '.sub', '.idx', '.sup', '.lock']
     for root, dirs, files in os.walk(video_folder_path):
@@ -109,23 +112,35 @@ def run():
     average_count = math.ceil(len(all_files) / process_count)
     start_index = 0
     print('The number of process : ', process_count)
+    que = Queue()
     for index in range(process_count):
         end_index = average_count + (index * average_count)
-        jobs_list.append(mp.Process(target=process_pending_file, args=(all_files[start_index:end_index],)))
+        jobs_list.append(mp.Process(target=process_pending_file, args=(que, all_files[start_index:end_index],)))
         start_index = end_index
 
+    print(f'{len(all_files)} files to be checked.')
     print('All process start ...')
     for job in jobs_list:
         job.start()
 
     for job in jobs_list:
         job.join()
-    print('===========================================================')
-    print('All files are checked ! Container will close automatically.')
 
     script_end_time = datetime.datetime.now()
     time_delta = script_end_time - script_start_time
-    print(f'Total time spent (second) : {time_delta.total_seconds()} s')
+    print('===========================================================')
+    print(f'{len(all_files)} files are checked !')
+    print('Result:')
+    if que.qsize() > 0:
+        print(f'   Found {que.qsize()} video with DTS, EAC3 audio format !')
+        for index in range(que.qsize()):
+            (file_path, audio_format) = que.get()
+            print(f'      {index+1}. {file_path}')
+            print(f'         Audio Format: {audio_format}')
+    else:
+        print('   No DTS, EAC3 audio format video file found.')
+    print(f'Total time spent : {time_delta.total_seconds()} s')
+    print('Container will close automatically.')
 
 
 if __name__ == '__main__':
