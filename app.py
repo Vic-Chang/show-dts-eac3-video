@@ -49,10 +49,14 @@ def check_file(que, file_path):
             print_info('=========')
             print_info(f'File path: {file_path}')
             print_info(f'Audio tracks count: {len(media_info.audio_tracks)}')
+            audio_tracks = []
             for track in media_info.audio_tracks:
                 print_info(f'   Audio format: {track.format}')
+                other_format = []
                 for i in track.to_data()['other_format']:
                     print_info(f'       other_format : {i}')
+                    other_format.append(i)
+                audio_tracks.append((track.format, other_format))
 
             detect_format_flag = False
             # 檢查所有音軌是否含有 DTS 或是 EAC3
@@ -81,7 +85,7 @@ def check_file(que, file_path):
 
                 if not has_other_format_type:
                     print_info("> [X] This file can't be played !")
-                    que.put((file_path, media_info.audio_tracks[0].format))
+                    que.put((file_path, audio_tracks))
     except FileNotFoundError:
         print("[!] File not found : ", file_path)
     except Exception as e:
@@ -134,9 +138,12 @@ def run():
     if que.qsize() > 0:
         print(f'   Found {que.qsize()} video with DTS, EAC3 audio format !')
         for index in range(que.qsize()):
-            (file_path, audio_format) = que.get()
+            (file_path, audio_tracks) = que.get()
             print(f'      {index+1}. {file_path}')
-            print(f'         Audio Format: {audio_format}')
+            for audio_formate in audio_tracks:
+                print(f'         Audio Format: {audio_formate[0]}')
+                for other_format in audio_formate[1]:
+                    print(f'            Other Format: {other_format}')
     else:
         print('   No DTS, EAC3 audio format video file found.')
     print(f'Total time spent : {time_delta.total_seconds()} s')
