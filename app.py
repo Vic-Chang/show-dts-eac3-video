@@ -12,10 +12,10 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 show_info = bool(int(config['Setting']['ShowDetail']))
 
-if not os.path.isdir('Result'):
-    os.mkdir('Result')
+if not os.path.isdir('Results'):
+    os.mkdir('Results')
 
-logging_folder_name = os.path.join('Result', datetime.datetime.now().strftime("%Y%m%d"))
+logging_folder_name = os.path.join('Results', datetime.datetime.now().strftime("%Y%m%d"))
 if not os.path.isdir(logging_folder_name):
     os.mkdir(logging_folder_name)
 
