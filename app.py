@@ -110,7 +110,7 @@ def check_file(que, file_path):
 def run():
     script_start_time = datetime.datetime.now()
     logging.info('Script start ...')
-    video_folder_path = 'videoFolder'
+    video_folder_path = 'VideoFolder'
     if not os.path.exists(video_folder_path):
         os.mkdir(video_folder_path)
 
