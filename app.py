@@ -115,7 +115,6 @@ def run():
         os.mkdir(video_folder_path)
 
     all_files = []
-    result_file = []
     common_extension = ['.srt', '.ass', '.saa', '.jpg', '.png', '.zip', '.rar', '.7z', '.tar', '.tmp', '.mp3', '.doc',
                         '.docx', '.txt', '.vsmeta', '.nfo', '.torrent', '.sub', '.idx', '.sup', '.lock']
     for root, dirs, files in os.walk(video_folder_path):
