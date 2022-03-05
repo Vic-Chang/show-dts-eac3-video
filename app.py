@@ -2,6 +2,7 @@ import datetime
 import math
 import os
 import configparser
+import logging
 import multiprocessing as mp
 from multiprocessing import Queue
 from pathlib import Path
@@ -9,14 +10,28 @@ from pymediainfo import MediaInfo
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-
 show_info = bool(int(config['Setting']['ShowDetail']))
+
+if not os.path.isdir('Result'):
+    os.mkdir('Result')
+
+logging_folder_name = os.path.join('Result', datetime.datetime.now().strftime("%Y%m%d"))
+if not os.path.isdir(logging_folder_name):
+    os.mkdir(logging_folder_name)
+
+logging_file_name = datetime.datetime.now().strftime("%H%M%S")
+if show_info:
+    logging_file_name = logging_file_name + '_full'
+logging_file_name = logging_file_name + '.txt'
+
+logging.basicConfig(filename=os.path.join(logging_folder_name, logging_file_name), format='%(asctime)s |  %(message)s',
+                    datefmt='%I:%M:%S', level=logging.INFO)
 
 
 def print_info(value):
     global show_info
     if show_info:
-        print(value)
+        logging.info(value)
 
 
 def process_pending_file(que, files_list):
@@ -87,14 +102,14 @@ def check_file(que, file_path):
                     print_info("> [X] This file can't be played !")
                     que.put((file_path, audio_tracks))
     except FileNotFoundError:
-        print("[!] File not found : ", file_path)
+        logging.info("[!] File not found : ", file_path)
     except Exception as e:
-        print('[!] Exception raise : ', e)
+        logging.info('[!] Exception raise : ', e)
 
 
 def run():
     script_start_time = datetime.datetime.now()
-    print('Script start ...')
+    logging.info('Script start ...')
     video_folder_path = 'videoFolder'
     if not os.path.exists(video_folder_path):
         os.mkdir(video_folder_path)
@@ -115,15 +130,15 @@ def run():
     process_count = int(config['Setting']['ProcessCount'])
     average_count = math.ceil(len(all_files) / process_count)
     start_index = 0
-    print('The number of process : ', process_count)
+    logging.info(f'The number of process : {process_count}')
     que = Queue()
     for index in range(process_count):
         end_index = average_count + (index * average_count)
         jobs_list.append(mp.Process(target=process_pending_file, args=(que, all_files[start_index:end_index],)))
         start_index = end_index
 
-    print(f'{len(all_files)} files to be checked.')
-    print('All process start ...')
+    logging.info(f'{len(all_files)} files to be checked.')
+    logging.info('All process start ...')
     for job in jobs_list:
         job.start()
 
@@ -132,22 +147,22 @@ def run():
 
     script_end_time = datetime.datetime.now()
     time_delta = script_end_time - script_start_time
-    print('===========================================================')
-    print(f'{len(all_files)} files are checked !')
-    print('Result:')
+    logging.info('===========================================================')
+    logging.info(f'{len(all_files)} files are checked !')
+    logging.info('Result:')
     if que.qsize() > 0:
-        print(f'   Found {que.qsize()} video with DTS, EAC3 audio format !')
+        logging.info(f'   Found {que.qsize()} video with DTS, EAC3 audio format !')
         for index in range(que.qsize()):
             (file_path, audio_tracks) = que.get()
-            print(f'      {index+1}. {file_path}')
+            logging.info(f'      {index + 1}. {file_path}')
             for audio_formate in audio_tracks:
-                print(f'         Audio Format: {audio_formate[0]}')
+                logging.info(f'         Audio Format: {audio_formate[0]}')
                 for other_format in audio_formate[1]:
-                    print(f'            Other Format: {other_format}')
+                    logging.info(f'            Other Format: {other_format}')
     else:
-        print('   No DTS, EAC3 audio format video file found.')
-    print(f'Total time spent : {time_delta.total_seconds()} s')
-    print('Container will close automatically.')
+        logging.info('   No DTS, EAC3 audio format video file found.')
+    logging.info(f'Total time spent : {time_delta.total_seconds()} s')
+    logging.info('Container will close automatically.')
 
 
 if __name__ == '__main__':
