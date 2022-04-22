@@ -2,11 +2,11 @@
 
 ## 介紹
 
-因為 Synology NAS 在 Video Station [專利授權](https://kb.synology.com/zh-tw/DSM/tutorial/Why_can_t_I_play_videos_with_DTS_or_EAC3_audio_format_on_Video_Station) 上的關係，導致無法撥放 DTS 與 EAC3 音訊格式。
+因為 Synology NAS 在 Video Station [專利授權](https://kb.synology.com/zh-tw/DSM/tutorial/Why_can_t_I_play_videos_with_DTS_or_EAC3_audio_format_on_Video_Station) 上的關係，導致無法播放 DTS 與 EAC3 音訊格式。
 
 但在 Video Station 上卻沒辦法以條列式方式顯示所有影音檔案的音頻格式，只能一個一個慢慢點開看，且 Synology 也無提供 Video Station API, 導致若有上百個影片檔案，那會非常費時。
 
-所以寫了這個東西去抓所有影片檔案，並且去檢視該檔案的音頻格式。若是發現有包含專利授權的音頻格式，並且 **Video Station 無法撥放** 就顯示該檔案的名稱、路徑、格式並紀錄起來。( 影片若包含其它可撥放的音頻則不列入，如 AC3, AAC 格式等 )
+所以寫了這個東西去抓所有影片檔案，並且去檢視該檔案的音頻格式。若是發現有包含專利授權的音頻格式，並且 **Video Station 無法播放** 就顯示該檔案的名稱、路徑、格式並紀錄起來。( 影片若包含其它可播放的音頻則不列入，如 AC3, AAC 格式等 )
 
 但因為不想要全域汙染到 NAS 環境，所以決定以 **`Docker`** 的方式隔離環境。至於讀取 Host 的影片則使用掛載 `Volumes` 的方式讓他與 NAS Host 做連結，這樣就解決了汙染環境的問題。並且因為 Docker container 在程式運行結束後會關閉，若重啟該 Container 將再次重新檢查所有檔案，達成了一鍵檢查、易於使用的目的。
 
@@ -36,7 +36,7 @@
 
 `ShowDetail` 預設為 0
 
-> 設定為 0 ，執行結果將只儲存無法於 Video Station 上撥放的影片之檔案及音軌資訊  
+> 設定為 0 ，執行結果將只儲存無法於 Video Station 上播放的影片之檔案及音軌資訊  
 > 設定為 1 ，執行結果將儲存所有檔案的所有音軌詳細格式資訊
 
 `ProcessCount` 預設為 2
@@ -63,8 +63,8 @@
 
 ![簡易輸出結果](https://user-images.githubusercontent.com/16682813/164535693-10f48265-2663-4478-9042-c32508889064.png)
 
-> 設定簡易輸出，處理結果僅顯示 Video Station 無法撥放的檔案以及該檔案的格式
+> 設定簡易輸出，處理結果僅顯示 Video Station 無法播放的檔案以及該檔案的格式
 
 ![詳細輸出結果](https://user-images.githubusercontent.com/16682813/164535713-ec27b04a-54bc-424a-a3ef-d502572525b6.png)
 
-> 設定詳細輸出，處理結果將顯示所有影片檔案之所有音軌格式，最後並總結列出 Video Station 無法撥放的檔案以及格式
+> 設定詳細輸出，處理結果將顯示所有影片檔案之所有音軌格式，最後並總結列出 Video Station 無法播放的檔案以及格式
